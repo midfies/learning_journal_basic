@@ -1,29 +1,29 @@
-import unittest
-
+import pytest
 from pyramid import testing
 
 
-class ViewTests(unittest.TestCase):
-    def setUp(self):
-        self.config = testing.setUp()
-
-    def tearDown(self):
-        testing.tearDown()
-
-    def test_my_view(self):
-        from .views import my_view
-        request = testing.DummyRequest()
-        info = my_view(request)
-        self.assertEqual(info['project'], 'learning_journal_basic')
+@pytest.fixture
+def req():
+    """Dummy request."""
+    the_request = testing.DummyRequest()
+    return the_request
 
 
-class FunctionalTests(unittest.TestCase):
-    def setUp(self):
-        from learning_journal_basic import main
-        app = main({})
-        from webtest import TestApp
-        self.testapp = TestApp(app)
+@pytest.fixture
+def testapp():
+    """Test app fixture."""
+    from webtest import TestApp
+    from learning_journal_basic import main
+    app = main({})
+    return TestApp(app)
 
-    def test_root(self):
-        res = self.testapp.get('/', status=200)
-        self.assertTrue(b'Pyramid' in res.body)
+
+def test_home_page_renders_file_date(req):
+    """My home page view returns some data."""
+    from .views import list_home
+    response = list_home(req)
+    assert "Most Recent Posts" in response
+
+def test_home_page_has_thing(testapp):
+    response = testapp.get("/", status=200)
+    html = response.html    
